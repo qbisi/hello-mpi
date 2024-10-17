@@ -7,6 +7,10 @@
     inputs.systems.follows = "systems";
   };
 
+  nixConfig = {
+    extra-sandbox-paths = [ "/sys" ];
+  };
+
   outputs =
     { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (
@@ -15,7 +19,23 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       {
-        devShells.default = pkgs.mkShell { packages = with pkgs;[ bashInteractive gccStdenv mpi cmake ]; };
+        # devShells.default = pkgs.mkShell { packages = with pkgs;[ bashInteractive gccStdenv mpi cmake mpi.dev ]; };
+
+        packages = rec {
+          default = hello;
+
+          hello = with pkgs; stdenv.mkDerivation {
+            name = "hello-mpi";
+
+            src = lib.fileset.toSource { root = ./.; fileset = ./.; };
+
+            buildInputs = [ mpi ];
+
+            doCheck = true;
+
+            installFlags = [ "PREFIX=\${out}" ];
+          };
+        };
       }
     );
 }
