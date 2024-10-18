@@ -10,7 +10,7 @@
   nixConfig = {
     # extra-sandbox-paths = [ "/sys/devices/system/cpu/cpu0/topology" ];
     # extra-sandbox-paths = [ "/sys/devices/system/cpu" ];
-    extra-sandbox-paths = [ "/sys" ];
+    # extra-sandbox-paths = [ "/sys" ];
   };
 
   outputs =
@@ -40,11 +40,9 @@
               for i in {0..1}
               do
               install -d $out/root/sys/devices/system/cpu/cpu$i/topology
-              echo $i > $out/root/sys/devices/system/cpu/cpu$i/topology/core_cpus
+              echo $((i+1)) > $out/root/sys/devices/system/cpu/cpu$i/topology/core_cpus
               done
               echo '0-1' > $out/root/sys/devices/system/cpu/possible
-              # echo '0-1' > $out/root/sys/devices/system/cpu/online
-              # echo '0-1' > $out/root/sys/devices/system/cpu/present
               makeWrapper "${bubblewrap}/bin/bwrap" "$out/bin/mpirun" --add-flags "--bind $out/root / --bind /build /build --proc /proc --dev /dev --bind /nix/store /nix/store ${mpi}/bin/mpirun --prefix ${mpi}"
             '';
           };
@@ -54,7 +52,7 @@
 
             src = lib.fileset.toSource { root = ./hello; fileset = ./hello; };
 
-            # nativeBuildInputs = [ mpiBwrapped ];
+            nativeBuildInputs = [ mpiBwrapped ];
 
             buildInputs = [ mpi ];
 
